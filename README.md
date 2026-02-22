@@ -118,6 +118,3 @@ All credentials must be configured locally in n8n.
 
 ---
 
-## 👩‍💻 Author
-
-Built as a hands-on automation project to explore real-world API integrations and workflow design using n8n.
