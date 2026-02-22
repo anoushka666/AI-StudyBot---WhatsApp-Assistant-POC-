@@ -1,0 +1,822 @@
+{
+  "name": "AI StudyBot",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "studybot-webhook",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        -80
+      ],
+      "id": "10be3b8d-84d8-4869-9aab-aa53e990b70c",
+      "name": "Webhook",
+      "webhookId": "7433eeb6-96e2-4a8f-8c37-a47cabb2205f"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ef25fe3d-1b61-4d49-bc86-a1a2fd19634d",
+              "name": "message",
+              "value": "={{$json[\"body\"][\"Body\"]}}",
+              "type": "string"
+            },
+            {
+              "id": "3e3114bb-ed29-49fb-99e9-bce54cb06feb",
+              "name": "phone",
+              "value": "={{$json[\"body\"][\"From\"]}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        224,
+        -80
+      ],
+      "id": "85fa40b1-8e92-4878-a291-43391ee9af10",
+      "name": "Parse Incoming Message"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9b10530c-fd7a-460e-bc1e-9933a7e95278",
+              "leftValue": "={{$json.message}}",
+              "rightValue": "add ",
+              "operator": {
+                "type": "string",
+                "operation": "startsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": false
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        -80
+      ],
+      "id": "23f078e7-9c07-404f-b7a8-1368c8dd54f5",
+      "name": "Intent Direction - Add Assignment"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "=YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "=YOUR_SHEET_NAME",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "subject": "={{$json.subject}}",
+            "assignment": "={{$json.assignment}}",
+            "due_date": "=  {{$json.due_date}}",
+            "phone": "={{$json.phone}}",
+            "status": "pending"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "assignment",
+              "displayName": "assignment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "due_date",
+              "displayName": "due_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1120,
+        -272
+      ],
+      "id": "b51537f3-1f9e-4dea-a3c3-eb04d54db2e3",
+      "name": "Save Assignment",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XSWlVqjHkdCXD3ve",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "from": "whatsapp:+14155238886",
+        "to": "={{$json.phone}}",
+        "message": "=✅ Assignment added successfully!\nSubject: {{$json.subject}}\nTask: {{$json.assignment}}\nDue Date: {{$json.due_date}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        1520,
+        -496
+      ],
+      "id": "febdd19b-8f31-423b-b592-97a2fe167793",
+      "name": "Send WhatsApp Confirmation"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "10cb7fa4-deb2-467a-a209-8f9cb108f105",
+              "leftValue": "={{$json.message}}",
+              "rightValue": "^view assignments?$",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        192
+      ],
+      "id": "976588d0-de73-4158-af2d-8cc8b3b41010",
+      "name": "Intent Detection - View Assignments"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "=YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "=YOUR_SHEET_NAME",
+          "mode": "id"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        896,
+        192
+      ],
+      "id": "636661f0-fe11-48d3-83f2-536e548ba2d8",
+      "name": "Get rows"
+    },
+    {
+      "parameters": {
+        "jsCode": "let message = \"📚 Your Assignments:\\n\\n\";\n\nitems.forEach((item, index) => {\n  message += `${index + 1}) ${item.json.subject}\\n`;\n  message += `   Task: ${item.json.assignment}\\n`;\n  message += `   Due: ${item.json.due_date}\\n`;\n  message += `   Status: ${item.json.status}\\n\\n`;\n});\n\nreturn [\n  {\n    json: {\n      reply: message,\n      phone: items[0].json.phone\n    }\n  }\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        192
+      ],
+      "id": "9dfdf89e-72a0-48f7-b1d9-f0e4048d41b2",
+      "name": "Format Assignments"
+    },
+    {
+      "parameters": {
+        "from": "whatsapp:+14155238886",
+        "to": "={{$json.phone}}",
+        "message": "={{$json.reply}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        1408,
+        192
+      ],
+      "id": "6a3dd30b-80ec-4974-9991-1603f30486d7",
+      "name": "Send WhatsApp message",
+      "credentials": {
+        "twilioApi": {
+          "id": "oG2YWueWfE88Sfpj",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 3
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        1120,
+        480
+      ],
+      "id": "e3eb80bb-0adf-4b2d-9320-d4672ce32346",
+      "name": "Wait",
+      "webhookId": "7a7552f1-9d7a-4674-a3d6-f076666fdf37",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a helpful academic tutor.\nExplain clearly in simple words, step by step.\n\nQuestion:\n{{$json.message}}",
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        1344,
+        480
+      ],
+      "id": "3288ae30-5fff-4fc2-a885-c511e07970cb",
+      "name": "Basic LLM Chain",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "gpt-4o-mini"
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1424,
+        704
+      ],
+      "id": "2882bfb8-14be-4d9d-b813-25912953f7b5",
+      "name": "OpenAI Chat Model",
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "from": "whatsapp:+14155238886",
+        "to": "={{$json.phone}}",
+        "message": "={{$json.output}}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        1696,
+        480
+      ],
+      "id": "48c06cb2-2a78-4011-9a92-32a342140de4",
+      "name": "Send answer",
+      "credentials": {
+        "twilioApi": {
+          "id": "oG2YWueWfE88Sfpj",
+          "name": "Twilio account"
+        }
+      },
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "from": "whatsapp:+14155238886",
+        "to": "={{$json.phone}}",
+        "message": "=🤖 AI doubt-solving is currently unavailable.\n\nYou can still:\n• Add assignments\n• View assignments\n\nPlease try again later.",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        896,
+        480
+      ],
+      "id": "06dc2f20-4e97-4e7f-91e8-7366e87892f2",
+      "name": "Send Fallback Reply",
+      "credentials": {
+        "twilioApi": {
+          "id": "oG2YWueWfE88Sfpj",
+          "name": "Twilio account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "2220d7f8-7b0c-46ca-a75c-5b20a31f2e01",
+              "name": "=subject",
+              "value": "={{$json.message.split(' ')[1]}}",
+              "type": "string"
+            },
+            {
+              "id": "2eb6f5bd-f842-402d-9c3d-34bb4e16e731",
+              "name": "=due_date",
+              "value": "={{$json.message.split(' ').slice(-1)[0]}}",
+              "type": "string"
+            },
+            {
+              "id": "a8296420-30ff-465d-99a7-4d24170f5c47",
+              "name": "=assignment",
+              "value": "={{$json.message   .split(' ')   .slice(2, -1)   .join(' ')}}",
+              "type": "string"
+            },
+            {
+              "id": "b6d0d8ce-4709-4d61-819b-376a053248e6",
+              "name": "=status",
+              "value": "pending",
+              "type": "string"
+            },
+            {
+              "id": "652edc57-47ac-41c8-9a61-89919e6b9af4",
+              "name": "=phone",
+              "value": "={{$json.phone}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        800,
+        -272
+      ],
+      "id": "a6dfeba3-fca1-40dc-b166-4c0570ee44dd",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "80b5ca22-3c23-421e-8e2e-0d4d76f10f0e",
+              "leftValue": "={{$json.message}}",
+              "rightValue": "^done\\s+\\d+$",
+              "operator": {
+                "type": "string",
+                "operation": "regex"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        896,
+        -96
+      ],
+      "id": "e9f6bc16-2770-4e40-b26b-380b3cebf7de",
+      "name": "Intent Detection - Mark Completed"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "81514a42-daac-444b-98d6-c60c993b856e",
+              "name": "=row_number",
+              "value": "={{ Number($json.message.split(' ')[1]) }}",
+              "type": "string"
+            },
+            {
+              "id": "c0783c6d-abf1-42b8-ab97-138411d81f1a",
+              "name": "status",
+              "value": "completed",
+              "type": "string"
+            },
+            {
+              "id": "b22a12e1-786f-4887-837d-d28290fa3a92",
+              "name": "=phone",
+              "value": "={{$json.phone}}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        1136,
+        -64
+      ],
+      "id": "2b2cd5a4-12f9-44c9-ba36-780395512489",
+      "name": "Edit Fields1"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "=YOUR_GOOGLE_SHEET_ID",
+          "mode": "id"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "=YOUR_SHEET_NAME",
+          "mode": "id"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "row_number": "={{$json.row_number}}",
+            "status": "completed"
+          },
+          "matchingColumns": [
+            "row_number"
+          ],
+          "schema": [
+            {
+              "id": "subject",
+              "displayName": "subject",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "assignment",
+              "displayName": "assignment",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "due_date",
+              "displayName": "due_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "phone",
+              "displayName": "phone",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1328,
+        -128
+      ],
+      "id": "24f82d81-37fc-4ba9-91d2-4694d3ead0ff",
+      "name": "Update row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "XSWlVqjHkdCXD3ve",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "from": "whatsapp:+14155238886",
+        "to": "={{$node[\"Parse Incoming Message\"].json.phone}}",
+        "message": "✅ Assignment marked as completed",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.twilio",
+      "typeVersion": 1,
+      "position": [
+        1600,
+        -128
+      ],
+      "id": "a3c2f363-8d82-4e79-8d48-53e99b11ddfe",
+      "name": "Send confirmation",
+      "credentials": {
+        "twilioApi": {
+          "id": "oG2YWueWfE88Sfpj",
+          "name": "Twilio account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Parse Incoming Message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Incoming Message": {
+      "main": [
+        [
+          {
+            "node": "Intent Direction - Add Assignment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intent Direction - Add Assignment": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Intent Detection - View Assignments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Assignment": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp Confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intent Detection - View Assignments": {
+      "main": [
+        [
+          {
+            "node": "Get rows",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Intent Detection - Mark Completed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get rows": {
+      "main": [
+        [
+          {
+            "node": "Format Assignments",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Assignments": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Send answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send Fallback Reply": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Save Assignment",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Intent Detection - Mark Completed": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send Fallback Reply",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields1": {
+      "main": [
+        [
+          {
+            "node": "Update row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Send confirmation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "86ec3b8e-c896-4775-9510-f9efec078ea0",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "c98b8a9f0ccb653a7239ee92171f9353025c555ae56f6689f38728587458a892"
+  },
+  "id": "BFJcNgPzyU8248NF",
+  "tags": []
+}
