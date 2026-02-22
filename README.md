@@ -112,21 +112,6 @@ All credentials must be configured locally in n8n.
 
 ---
 
-## 📱 WhatsApp Demo
-
-<p align="center">
-  <img src="whatsApp demo -1" width="350">
-</p>
-<p align="center">
-  <img src="whatsApp demo -2" width="350">
-</p>
-<p align="center">
-  <img src="whatsApp demo -3" width="350">
-</p>
-<p align="center">
-  <img src="workflow" width="350">
-</p>
-
 ## 📌 **Project Status**
 
 **Proof-of-Concept (POC)**
